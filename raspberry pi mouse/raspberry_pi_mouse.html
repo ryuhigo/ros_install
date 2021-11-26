@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Raspberry Pi Mouse用のSDを作成</title>
+    <link rel="stylesheet" href="stylesheet.css">
+  </head>
+
+  <body>
+
+    <h1>Raspberry Pi Mouse用のSDを作成</h1>
+    <br>
+
+    <ul>
+      <h2>SDの作成手順</h2>
+
+      <ul>
+        <li>Ubuntuのインストール</li>
+        <br>
+        <li>デバイスドライバのインストール</li>
+        <br>
+        <li>ROSのインストール</li>
+      </ul>
+      <br><br>
+
+      <h2>1. Ubuntuのインストール</h2>
+
+      <ul>
+        <li>Ubuntu(18.04)のイメージファイルを<a href="http://cdimage.ubuntu.com/releases/bionic/release/ubuntu-18.04.5-preinstalled-server-arm64+raspi3.img.xz">ダウンロード</a></li>
+        <br>
+
+
+        <li>イメージファイルの書き込み (以下はbalenaEtcherを用いた方法)</li>
+        <p>・<a href="https://www.balena.io/etcher/">balenaEtcher</a>のダウンロードページに移動してダウンロードする．</p>
+        <p>・パソコンにSDカードを差し，balenaEtcherを起動する．</p>
+        <p>・"Falsh from file"にダウンロードした"Ubuntu18.04"のイメージファイルを選択し，
+            "Select target"にSDカードを選択した後に"Flash!"を押す．</p>
+      </ul>
+
+      <br>
+
+      <h2>2. デバイスドライバのインストール</h2>
+
+      <ul>
+        <li>ラズパイのログイン設定</li>
+        <p>・ラズパイにSDカードを挿し，電源を入れ以下のように入力する</p>
+
+        <ul>
+          <p>ubuntu login:<strong>ubuntu</strong><br>
+            Password:<strong>ubuntu</strong><br>
+            (Current) UNIX password:<strong>ubuntu</strong><br>
+            Enter new UNIX password:<strong>新しいパスワードを入力</strong><br>
+            Retype new UNIX password:<strong>新しいパスワードを再入力</strong><br></p>
+        </ul>
+
+        <li>インストールの前準備</li>
+        <p>・<strong>$ sudo apt update</strong>でインストール可能なパッケージの一覧を更新</p>
+        <p>・<strong>$ sudo apt upgrade</strong>でインストール済みのパッケージを更新</p>
+
+        <li>パッケージをGitHubからクローン</li>
+        <p>・<strong>$ cd ~</strong>でホームディレクトリに移動</p>
+        <p>・<strong>$ git clone https://github.com/rt-net/RaspberryPiMouse.git</strong>でパッケージのクローンを行う</p>
+        <p>・<strong>$ sudo apt install linux-headers-$(uname -r) build-essential</strong>でデバイスファイル生成に必要なパッケージをインストール</p>
+        <p>・<strong>$ cd RaspberryPiMouse/utils</strong>でutilsディレクトリに移動</p>
+        <p>・<strong>$ ./build_install.bash</strong>でビルドとインストールを完了</p>
+
+        <li>起動後に毎回デバイスドライバを読み込むように設定</li>
+        <p>・<strong>$ sudo nano ~/.bashrc</strong>で.bashrcを開き，末尾に以下を書き込む</p>
+        <p><strong>if [ -e /dev/rtmotoren0 ];&nbsp;then</strong><br>
+        <p><strong>&nbsp;&nbsp;&nbsp;&nbsp;echo "Device Driver is already installed"</strong></p>
+        <p><strong>else</strong></p>
+        <p><strong>&nbsp;&nbsp;&nbsp;&nbsp;echo "Device Driver will be installed"</strong></p>
+        <p><strong>&nbsp;&nbsp;&nbsp;&nbsp;~/RaspberryPiMouse/utils/build_install.bash</strong></p>
+        <p><strong>&nbsp;fi</strong></p>
+        <p>・<strong>$ sudo reboot</strong>で再起動し，ラズパイマウスがピッと鳴るか確認する<br>鳴らなかった場合，再インストールし</p>
+        <br>
+      </ul>
+
+      <h2>3. ROSのインストール</h2>
+
+      <ul>
+        <li>ROSのダウンロード先のアドレスをsources.lstに追加</li>
+        <p>・<strong>$ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'</strong><br>
+
+        <li>鍵を設定し，リポジトリに追加</li>
+        <p>・<strong>$ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654</strong><br>
+
+        <li>パッケージリストの更新</li>
+        <p>・<strong>$ sudo apt update</strong></p>
+
+        <li>ROSのインストール</li>
+        <p>・<strong>$ sudo apt install ros-melodic-ros-base</strong></p>
+
+        <li>ROSの環境変数の設定</li>
+        <p>・<strong>$ echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc</strong></p>
+        <p>・<strong>$ source ~/.bashrc</strong></p>
+
+        <li>依存関係をインストール</li>
+        <p>・<strong>$ sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential</strong></p>
+
+        <li>rosdepを初期化</li>
+        <p>・<strong>$ sudo apt install python-rosdep</strong></p>
+        <p>・<strong>$ sudo rosdep init</strong></p>
+        <p>・<strong>$ rosdep update</strong></p>
+
+        <li>ワークスペースの作成</li>
+        <p>・<strong>$ mkdir -p 〜/catkin_ws/src</strong></p>
+        <p>・<strong>$ cd 〜/catkin_ws</strong></p>
+        <p>・<strong>$ catkin_make</strong></p>
+
+        <li>ワークスペースをインストール環境に配置</li>
+        <p>・<strong>$ echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc</strong></p>
+        <p>・<strong>$ source ~/.bashrc</strong></p>
+      </ul>
+
+    </ul>
+  </body>
+</html>
